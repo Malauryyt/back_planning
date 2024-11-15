@@ -29,27 +29,38 @@ router.post('/modif',body("id") ,body("libelle") ,body("trigramme") ,body("id_us
 });
 
 // Supprimer un projet par ID
-app.delete('/projet/:id', async (req, res) => {
-    const success = await projetController.deleteProjet(req.params.id);
-    success ? res.json({ message: 'Projet supprimé' }) : res.status(404).json({ error: 'Projet non trouvé' });
+router.post('/supp', body("id"), async (req, res) => {
+    const success = await projetRepository.deleteProjet(req.body.id);
+    if( success === 1 ){
+        res.json({ message: 'Projet supprimé' })
+    }
+    else{
+        res.status(404).json({ error: 'Projet non trouvé' });
+    }
 });
 
+
+
 // Récupérer un projet par ID
-app.get('/projet/:id', async (req, res) => {
-    const projet = await projetController.getProjetById(req.params.id);
-    projet ? res.json(projet) : res.status(404).json({ error: 'Projet non trouvé' });
+router.get('/getOne/:id', async (req, res) => {
+    const projet = await projetRepository.getProjetById(req.params.id);
+    if( projet === 0 ){
+        res.status(404).json({ error: 'Projet non trouvé' });
+    }
+    else{
+        res.json(projet);
+    }
 });
 
 // Récupérer les projets par ID utilisateur
-app.get('/projets/user/:id_user', async (req, res) => {
-    const projets = await projetController.getProjetsByUserId(req.params.id_user);
+router.get('/getMine/:id_user', async (req, res) => {
+    const projets = await projetRepository.getProjetsByUserId(req.params.id_user);
     res.json(projets);
 });
 
 
-
 // Route pour récupérer tous les projets avec un id_user différent de celui fourni
-router.get('/getAutreProject/:id_user', async (req, res) => {
+router.get('/getOther/:id_user', async (req, res) => {
     const { id_user } = req.params;
 
     const projets = await projetRepository.getProjetsDifferentUser(req.params.id_user);
@@ -60,5 +71,19 @@ router.get('/getAutreProject/:id_user', async (req, res) => {
         res.status(404).json({ message: `Aucun projet trouvé avec un id_user différent de ${id_user}.` });
     }
 });
+
+// Route pour récupérer tous les projets suivit
+router.get('/getSuivit/:id_user', async (req, res) => {
+    const { id_user } = req.params;
+
+    const projets = await projetRepository.getProjetsSuivit(req.params.id_user);
+
+    if (projets.length > 0) {
+        res.status(200).json(projets);
+    } else {
+        res.status(404).json({ message: `Aucun projet suivit trouvé avec un id_user  de ${id_user}.` });
+    }
+});
+
 
 exports.initializeRoutesProjet = () => router;
