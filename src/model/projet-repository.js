@@ -85,7 +85,19 @@ exports.getProjetById = async (id) => {
 // Fonction pour récupérer les projets par l'ID de l'utilisateur
 exports.getProjetsByUserId = async (id_user) => {
     try {
-        const projets = await Projet.findAll({ where: { id_user: id_user } });
+        const projets = await sequelize.query(
+            `SELECT id_projet, libelle,  projet.trigramme, projet.id_user, etat, "user".id_user, "user".trigramme as trigrammeuser
+                 FROM projet, "user"
+                where projet.id_user = :id_user
+                and "user".id_user = projet.id_user;`,
+            {
+                replacements: {  id_user }
+            }
+        )
+            .then(([results, metadata]) => {
+                console.log("Projet trouvé", results);
+                return results;
+            });
         return projets;
     } catch (error) {
         console.error('Erreur lors de la récupération des projets pour cet utilisateur:', error);
@@ -98,9 +110,10 @@ exports.getProjetsDifferentUser = async (id_user) => {
     try {
 
         const projet = await sequelize.query(
-            `SELECT id_projet, libelle,  trigramme, id_user, etat
-                 FROM projet
-                where id_user <> :id_user;`,
+            `SELECT id_projet, libelle,  projet.trigramme, projet.id_user, etat, "user".id_user, "user".trigramme as trigrammeuser
+                 FROM projet, "user"
+                where id_user <> :id_user
+                and "user".id_user = projet.id_user;`,
                     {
                         replacements: {  id_user }
                     }
@@ -125,12 +138,14 @@ exports.getProjetsSuivit = async (id_user) => {
     try {
 
         const projet = await sequelize.query(
-            `SELECT projet.id_projet, projet.libelle,  trigramme, projet.id_user, etat
-                 FROM projet, tache
+            `SELECT projet.id_projet, projet.libelle,  projet.trigramme, projet.id_user, etat, "user"."trigramme" as trigrammeUser, "user"."nom"
+                 FROM projet, tache, "user"
                 where tache.id_projet = projet.id_projet
-                and tache.id_user = :id_user;`,
+                and "user"."id_user" = projet.id_user
+                and tache.id_user = :id_user
+                and projet.id_user <> :id_user;`,
             {
-                replacements: {  id_user }
+                replacements: {  id_user, id_user }
             }
         )
             .then(([results, metadata]) => {
