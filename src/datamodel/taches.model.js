@@ -14,6 +14,7 @@ const tacheModel = sequelize.define(
         statut : { type: DataTypes.INTEGER, allowNull: false },
         id_user: { foreignKey:true, type: DataTypes.INTEGER, allowNull: false },
         id_tache: { foreignKey:true, type: DataTypes.INTEGER, allowNull: true },
+        id_jalon: { foreignKey:true, type: DataTypes.INTEGER, allowNull: true },
         id_projet: { foreignKey:true, type: DataTypes.INTEGER, allowNull: false },
     },
     { tableName: 'tache' },
