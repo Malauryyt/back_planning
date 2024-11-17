@@ -7,7 +7,7 @@ const jalonModel = sequelize.define(
         id_jalon: { primaryKey: true, autoIncrement: true , type: DataTypes.INTEGER },
         libelle: { type: DataTypes.STRING, allowNull: false },
         date_liv_theorique : { type: DataTypes.DATEONLY, allowNull: false },
-        date_com_theorique : { type: DataTypes.DATEONLY, allowNull: false },
+        date_com_theorique : { type: DataTypes.DATEONLY, allowNull: true },
         charge : { type: DataTypes.INTEGER, allowNull: false },
         etat : { type: DataTypes.INTEGER, allowNull: false },
         id_user: { foreignKey:true, type: DataTypes.INTEGER, allowNull: false },
