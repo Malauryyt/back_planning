@@ -5,9 +5,11 @@ const {sequelize} = require("../datamodel/db")
 const User = require('../datamodel/utilisateur.model');
 const Projet = require('../datamodel/projet.model');
 const Tache = require('../datamodel/taches.model');
+const Jalon = require('../datamodel/jalon.model');
 
 const routesUser = require('../controller/user.route');
 const RoutesProjet = require('../controller/projet.route');
+
 
 class WebServer {
     app = undefined;
@@ -20,9 +22,15 @@ class WebServer {
         sequelize.sync({alter: true});
 
         Projet.belongsTo(User, {foreignKey: "id_user"});
+
+        Jalon.belongsTo(Projet,{foreignKey: "id_projet"} );
+        Jalon.belongsTo(User,{foreignKey: "id_user"} );
+
+        Tache.belongsTo(Jalon, {foreignKey: "id_jalon"});
         Tache.belongsTo(User, {foreignKey: "id_user"});
         Tache.belongsTo(Projet, {foreignKey: "id_projet"});
-        Tache.belongsTo(Tache, {foreignKey: "id"})
+        Tache.belongsTo(Tache, {foreignKey: "id"});
+
 
         require('dotenv').config();
         initializeConfigMiddlewares(this.app);
