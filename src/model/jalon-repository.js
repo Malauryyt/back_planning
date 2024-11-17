@@ -1,6 +1,7 @@
 const {sequelize} = require("../datamodel/db");
 const Jalon = require('../datamodel/jalon.model');
 const JalonRepository = require("../datamodel/jalon.model");
+const bcrypt = require("bcryptjs");
 
 
 exports.createJalon = async (libelle, date_liv_prev, date_commencement = "", id_user, id_projet) => {
@@ -10,6 +11,7 @@ exports.createJalon = async (libelle, date_liv_prev, date_commencement = "", id_
     var dateCommencement = "";
     var dateLivPrece = "";
     var idJalonAModif = 0;
+    var finLivJalonAModif = "";
 
     // ya t'il plusieur jalon ? si oui vérification qu'il n'est pas une date identique à un autre et modif date de commencement
     if(tabJalon != 0 && tabJalon.length > 0){
@@ -22,6 +24,7 @@ exports.createJalon = async (libelle, date_liv_prev, date_commencement = "", id_
             if( date_liv_prev < jalon.date_liv_theorique && prece == 0){
 
                 idJalonAModif = jalon.id_jalon;
+                finLivJalonAModif = jalon.date_liv_theorique
                 dateCommencement = dateLivPrece;
                 prece += 1;
             }
@@ -33,10 +36,6 @@ exports.createJalon = async (libelle, date_liv_prev, date_commencement = "", id_
         }
 
     }
-
-    console.log("Mon jalon à modifier :", idJalonAModif);
-    console.log("Ma date à initialiser pour moi  :", dateCommencement);
-    console.log("prece :", prece);
 
     // création de mon nouveau jalon
     async function createJalon(libelle, date_liv_prev, date_commencement, id_user, id_projet) {
@@ -61,6 +60,7 @@ exports.createJalon = async (libelle, date_liv_prev, date_commencement = "", id_
             console.log('New jalon created:', newJalon);
         } catch (error) {
             console.error('Error creating new jalon:', error);
+            return 0;
         }
     }
 
@@ -68,21 +68,46 @@ exports.createJalon = async (libelle, date_liv_prev, date_commencement = "", id_
     if( date_commencement != ""){
         dateCommencement = date_commencement
     }
-    createJalon(libelle, date_liv_prev, dateCommencement, id_user, id_projet);
+    else{
+        //Calcule de la date de commencement ( on y ajoute un jour)
+        const date = new Date(dateCommencement);
+        date.setDate(date.getDate() + 1);
+
+        // Retourner la nouvelle date au format 'YYYY-MM-DD'
+        dateCommencement =  date.toISOString().split('T')[0];
+    }
+
+    // création de mon nouveau jalon
+    const nouvJalon = createJalon(libelle, date_liv_prev, dateCommencement, id_user, id_projet);
+    if(nouvJalon == 0 ){
+        return 0;
+    }
+
+    // modification de la date de commencement d'un jalon
+    if( idJalonAModif != 0){
+        //ReCalcule de la date de commencement ( on y ajoute un jour)
+            const date = new Date(date_liv_prev);
+            date.setDate(date.getDate() + 1);
+
+            // Retourner la nouvelle date au format 'YYYY-MM-DD'
+            date_liv_prev =  date.toISOString().split('T')[0];
+
+        // Recalcule de la charge en jour
+        const start = new Date(date_liv_prev);
+        const end = new Date(finLivJalonAModif);
+        const diffTime = end - start;
+
+        // Convertir la différence en jours
+        const diffDays = diffTime / (1000 * 60 * 60 * 24);
+        const charge =  Math.round(diffDays);
+
+        const modif =  await this.modifDateCom(idJalonAModif, date_liv_prev, charge )
+        if(modif != 1){
+            return 0;
+        }
+    }
+
     return 1;
-
-    // console.log('Nouveau projet créé:', newProjet);
-
-    // Jalon à modifier idJalonAModif > on lui assigne la valeur de notre fin théorique
-    // Convertir la chaîne de caractères en objet Date
-    // const date = new Date(dateString);
-    //
-    // // Ajouter un jour
-    // date.setDate(date.getDate() + 1);
-    //
-    // // Retourner la nouvelle date au format 'YYYY-MM-DD'
-    // return date.toISOString().split('T')[0];
-
 
 };
 
@@ -113,3 +138,20 @@ exports.getJalonByProjet = async (id_projet) => {
         return 0;
     }
 };
+
+exports.modifDateCom = async (id_jalon, date_com, charge) =>{
+
+    try{
+            const jalonModif = await sequelize.query(`UPDATE "jalon" 
+                                            SET date_com_theorique = :date_com, charge = :charge
+                                            WHERE id_jalon = :id_jalon ;`, { replacements: {  date_com, charge, id_jalon}})
+                .then(([results, metadata]) => {
+                    console.log("Modification date effectuée.", results);
+                });
+
+        return 1;
+    } catch (error) {
+        console.error('Erreur lors de la modification du jalon:', error);
+        return 0;
+    }
+}
