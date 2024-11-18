@@ -10,8 +10,9 @@ const jalonModel = sequelize.define(
         date_com_theorique : { type: DataTypes.DATEONLY, allowNull: true },
         charge : { type: DataTypes.INTEGER, allowNull: false },
         etat : { type: DataTypes.INTEGER, allowNull: false },
+        couleur : { type: DataTypes.STRING, allowNull: true },
         id_user: { foreignKey:true, type: DataTypes.INTEGER, allowNull: false },
-        id_projet: { foreignKey:true, type: DataTypes.INTEGER, allowNull: false },
+        id_projet: { foreignKey:true, type: DataTypes.INTEGER, allowNull: false }
     },
     { tableName: 'jalon' },
 );

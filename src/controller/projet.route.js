@@ -77,11 +77,12 @@ router.get('/getSuivit/:id_user', async (req, res) => {
     const { id_user } = req.params;
 
     const projets = await projetRepository.getProjetsSuivit(req.params.id_user);
-
-    if (projets.length > 0) {
-        res.status(200).json(projets);
-    } else {
+   console.log(projets)
+    if (projets == 100) {
         res.status(404).json({ message: `Aucun projet suivit trouvé avec un id_user  de ${id_user}.` });
+
+    } else {
+        res.status(200).json(projets);
     }
 });
 

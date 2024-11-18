@@ -4,7 +4,7 @@ const JalonRepository = require("../datamodel/jalon.model");
 const bcrypt = require("bcryptjs");
 
 
-exports.createJalon = async (libelle, date_liv_prev, date_commencement = "", id_user, id_projet) => {
+exports.createJalon = async (libelle, date_liv_prev, date_commencement = "", id_user, id_projet, couleur) => {
 
     const tabJalon = await this.getJalonByProjet(id_projet);
     var prece = 0;
@@ -38,7 +38,7 @@ exports.createJalon = async (libelle, date_liv_prev, date_commencement = "", id_
     }
 
     // création de mon nouveau jalon
-    async function createJalon(libelle, date_liv_prev, date_commencement, id_user, id_projet) {
+    async function createJalon(libelle, date_liv_prev, date_commencement, id_user, id_projet, couleur) {
         try {
             // calcule de la charge en jour
             const start = new Date(dateCommencement);
@@ -47,7 +47,7 @@ exports.createJalon = async (libelle, date_liv_prev, date_commencement = "", id_
 
             // Convertir la différence en jours
             const diffDays = diffTime / (1000 * 60 * 60 * 24);
-            const charge =  Math.round(diffDays);
+            const charge =  Math.round(diffDays) + 1;
 
             const newJalon = await JalonRepository.create({
                 libelle : libelle,
@@ -56,7 +56,8 @@ exports.createJalon = async (libelle, date_liv_prev, date_commencement = "", id_
                 charge : charge,
                 etat : 0,
                 id_user: id_user,
-                id_projet: id_projet});
+                id_projet: id_projet,
+                couleur: couleur});
             console.log('New jalon created:', newJalon);
         } catch (error) {
             console.error('Error creating new jalon:', error);
@@ -78,7 +79,7 @@ exports.createJalon = async (libelle, date_liv_prev, date_commencement = "", id_
     }
 
     // création de mon nouveau jalon
-    const nouvJalon = createJalon(libelle, date_liv_prev, dateCommencement, id_user, id_projet);
+    const nouvJalon = createJalon(libelle, date_liv_prev, dateCommencement, id_user, id_projet, couleur);
     if(nouvJalon == 0 ){
         return 0;
     }
@@ -101,7 +102,7 @@ exports.createJalon = async (libelle, date_liv_prev, date_commencement = "", id_
         const diffDays = diffTime / (1000 * 60 * 60 * 24);
         const charge =  Math.round(diffDays);
 
-        const modif =  await this.modifDateCom(idJalonAModif, date_liv_prev, charge )
+        const modif =  await this.modifDateCom(idJalonAModif, date_liv_prev, charge  + 1)
         if(modif != 1){
             return 0;
         }
@@ -115,7 +116,7 @@ exports.getJalonByProjet = async (id_projet) => {
     try {
 
         const jalons = await sequelize.query(
-            `SELECT jalon.id_jalon, jalon.libelle, date_liv_theorique, date_com_theorique, charge, jalon.etat, jalon.id_user, jalon.id_projet,
+            `SELECT jalon.id_jalon, jalon.libelle,couleur, date_liv_theorique, date_com_theorique, charge, jalon.etat, jalon.id_user, jalon.id_projet,
                         "user".nom, "user".trigramme,
                          projet.libelle as libelleprojet, projet.trigramme as trigrammeprojet
                  FROM jalon, "user", projet
@@ -257,7 +258,7 @@ exports.modifJalon = async (id_jalon, libelle, date_liv_prev, date_commencement 
         const diffDays = diffTime / (1000 * 60 * 60 * 24);
         const charge =  Math.round(diffDays);
 
-        const modif =  await this.modifDateCom(idJalonAModif, date_liv_prev, charge )
+        const modif =  await this.modifDateCom(idJalonAModif, date_liv_prev, charge + 1)
         if(modif != 1){
             return 0;
         }
