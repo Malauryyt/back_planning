@@ -51,6 +51,25 @@ router.get("/getJalonById/:id_jalon",  async(req,res) => {
 
 
 
+router.post("/modif", body("id_jalon"), body("libelle"), body('date_liv_prev'),
+    body("date_com"), body("id_user"),
+    body("id_projet"), body("couleur"), async(req,res) => {
+
+        const modifJalon=  await jalonRepository.modifJalon(req.body.id_jalon,
+            req.body.libelle,
+            req.body.date_liv_prev,
+            req.body.date_com,
+            req.body.id_user,
+            req.body.id_projet,
+            req.body.couleur);
+
+        if(modifJalon === 1){
+            res.status(200).end();
+        }
+        else{
+            res.status(400).send("Problème lors de la création de projet");
+        }
+    });
 
 
 

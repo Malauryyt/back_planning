@@ -184,7 +184,7 @@ exports.modifDateCom = async (id_jalon, date_com, charge) =>{
     }
 }
 
-exports.modifJalon = async (id_jalon, libelle, date_liv_prev, date_commencement = "", id_user, id_projet) => {
+exports.modifJalon = async (id_jalon, libelle, date_liv_prev, date_commencement = "", id_user, id_projet, couleur) => {
 
     const tabJalon = await this.getJalonByProjet(id_projet);
     var prece = 0;
@@ -194,49 +194,35 @@ exports.modifJalon = async (id_jalon, libelle, date_liv_prev, date_commencement 
     var finLivJalonAModif = "";
     var infoJalons = "";
 
-    // on récupère les anciennes valeurs
-    infoJalons = tableau.find(item => item.id_jalon === 10);
 
-    // Suppression de mon jalon pour faciliter la modification
-    console.log(tabJalon);
-    const filteredTableau = tabJalon.filter(item => item.id_jalon !== id_jalon);
-    console.log("tab jalon sans celui en modif", tabJalon);
 
-    // si il y a plusieur jalon on regarde ou se place notre jalon
-    if(tabJalon != 0 && tabJalon.length > 0){
 
-        for (const jalon of tabJalon) {
-
-            if(jalon.date_liv_theorique == date_liv_prev ){
-                return 0;
-            }
-            if( date_liv_prev < jalon.date_liv_theorique && prece == 0){
-
-                idJalonAModif = jalon.id_jalon;
-                finLivJalonAModif = jalon.date_liv_theorique
-                dateCommencement = dateLivPrece;
-                prece += 1;
-            }
-            dateLivPrece = jalon.date_liv_theorique;
-        }
-        //si c'est le dernier jalon
-        if(prece == 0 ){
-            dateCommencement = dateLivPrece;
-        }
-
+    const index = tabJalon.findIndex(jalon => jalon.id_jalon === id_jalon);
+    if(index === -1){
+        return 0;
     }
 
-    // modification de mon jalon
+    // on récupère les anciennes valeurs
+    var infoJalons = tabJalon[index] ;
+    var infoJalonsAnte = tabJalon[index - 1 ] ;
+    var infoJalonsPrece = tabJalon[index + 1 ] ;
+
+    console.log("mon erng : ", infoJalonsPrece );
+
+
+
+    // // modification de mon jalon
     async function modifJalon(id_jalon, libelle, date_liv_prev, date_commencement, id_user, etat) {
         try{
-            const jalonModif = await sequelize.query(`UPDATE "jalon" 
+            const jalonModif = await sequelize.query(`UPDATE "jalon"
                                             SET libelle = :libelle,
                                                 date_liv_theorique= :date_liv_prev,
-                                                date_com_theorique= : date_commencement
                                                 id_user = :id_user,
-                                                etat = :etat
+                                                etat = :etat,
+                                                couleur = :couleur
+                                            
                                             WHERE id_jalon = :id_jalon ;`, { replacements: {  libelle, date_liv_prev,
-                                                                                                    date_commencement,  id_user, etat, id_jalon}})
+                                                                                                     id_user, etat, couleur, id_jalon}})
                 .then(([results, metadata]) => {
                     console.log("Modification jalon effectuée.", results);
                 });
@@ -248,24 +234,41 @@ exports.modifJalon = async (id_jalon, libelle, date_liv_prev, date_commencement 
         }
     }
 
-    // prise en compte de la date commmencement que si notre jalon devient le premier de la liste
-    if( date_commencement != ""){
-        dateCommencement = date_commencement
-    }
-    else{
-        //Calcule de la date de commencement ( on y ajoute un jour)
-        const date = new Date(dateCommencement);
-        date.setDate(date.getDate() + 1);
+    id_jalon, libelle, date_liv_prev, date_commencement = "", id_user, id_projet, couleur
 
-        // Retourner la nouvelle date au format 'YYYY-MM-DD'
-        dateCommencement =  date.toISOString().split('T')[0];
+    if(infoJalonsAnte != undefined ){
+        dateCommencement = infoJalons.date_com_theorique;
+    }
+    else if ( infoJalonsPrece != undefined )
+    // modification  de mon nouveau jalon si les dates correspondent
+    if(new Date(infoJalonsAnte.date_liv_theorique).getTime() > new Date(infoJalons.date_liv_theorique).getTime() ||
+        new Date(infoJalonsPrece.date_liv_theorique).getTime() < new Date(infoJalons.date_liv_theorique).getTime()){
+
+        return 0;
+    }else {
+        if (date_commencement === "") {
+            date_commencement = infoJalons.date_com_theorique;
+        }
     }
 
-    // création de mon nouveau jalon
-    const nouvJalon = createJalon(libelle, date_liv_prev, dateCommencement, id_user, id_projet);
-    if(nouvJalon == 0 ){
+    //Date de commencement
+    if( dateCommencement == ""){
+        dateCommencement = infoJalonsAnte.date_liv_theorique;
+    }
+    // Vérification de date
+    if(new Date(dateCommencement).getTime() >  new Date(date_liv_prev).getTime() ){
         return 0;
     }
+    if(infoJalonsAnte != undefined && new Date(infoJalonsAnte.date_liv_theorique).getTime() > new Date(infoJalons.date_liv_theorique).getTime()  ){
+        return 0;
+    }
+    if(infoJalonsPrece != undefined && new Date(infoJalonsPrece.date_liv_theorique).getTime() < new Date(infoJalons.date_liv_theorique).getTime()  ){
+        return 0;
+    }
+
+    const modifJal = await modifJalon(libelle, date_liv_prev, dateCommencement, id_user, id_projet);
+
+
 
     // modification de la date de commencement d'un jalon
     if( idJalonAModif != 0){
@@ -285,7 +288,7 @@ exports.modifJalon = async (id_jalon, libelle, date_liv_prev, date_commencement 
         const diffDays = diffTime / (1000 * 60 * 60 * 24);
         const charge =  Math.round(diffDays);
 
-        const modif =  await this.modifDateCom(idJalonAModif, date_liv_prev, charge + 1)
+        const modif =  await this.modifDateCom(idJalonAModif, date_liv_prev, charge  + 1)
         if(modif != 1){
             return 0;
         }
