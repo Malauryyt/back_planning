@@ -140,6 +140,33 @@ exports.getJalonByProjet = async (id_projet) => {
     }
 };
 
+exports.getJalonById = async (id_jalon) => {
+    try {
+
+        const jalons = await sequelize.query(
+            `SELECT jalon.id_jalon, jalon.libelle,couleur, date_liv_theorique, date_com_theorique, charge, jalon.etat, jalon.id_user, jalon.id_projet,
+                        "user".nom, "user".trigramme,
+                         projet.libelle as libelleprojet, projet.trigramme as trigrammeprojet
+                 FROM jalon, "user", projet
+                 where "user".id_user = jalon.id_user
+                 and jalon.id_projet = projet.id_projet
+                 and jalon.id_jalon = :id_jalon;`,
+            {
+                replacements: {  id_jalon }
+            }
+        )
+            .then(([results, metadata]) => {
+                // console.log("Jalons trouvés", results);
+                return results;
+            });
+
+        return jalons;
+    } catch (error) {
+        console.error('Erreur lors de la récupération de jalons:', error);
+        return 0;
+    }
+};
+
 exports.modifDateCom = async (id_jalon, date_com, charge) =>{
 
     try{

@@ -36,6 +36,21 @@ router.get("/getJalons/:id_projet",  async(req,res) => {
         }
     });
 
+router.get("/getJalonById/:id_jalon",  async(req,res) => {
+
+    const getJalon=  await jalonRepository.getJalonById(req.params.id_jalon);
+
+    if(getJalon == 0){
+        res.status(400).send("Problème dans la récupération du jalon" + req.params.id_jalon);
+
+    }
+    else{
+        res.status(200).json(getJalon);
+    }
+});
+
+
+
 
 
 
