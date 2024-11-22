@@ -50,10 +50,9 @@ router.get("/getJalonById/:id_jalon",  async(req,res) => {
 });
 
 
-
 router.post("/modif", body("id_jalon"), body("libelle"), body('date_liv_prev'),
     body("date_com"), body("id_user"),
-    body("id_projet"), body("couleur"), async(req,res) => {
+    body("id_projet"), body("etat"), body("couleur"), async(req,res) => {
 
         const modifJalon=  await jalonRepository.modifJalon(req.body.id_jalon,
             req.body.libelle,
@@ -61,16 +60,28 @@ router.post("/modif", body("id_jalon"), body("libelle"), body('date_liv_prev'),
             req.body.date_com,
             req.body.id_user,
             req.body.id_projet,
+            req.body.etat,
             req.body.couleur);
 
         if(modifJalon === 1){
             res.status(200).end();
         }
         else{
-            res.status(400).send("Problème lors de la création de projet");
+            res.status(400).send("Problème lors de la modification de projet");
         }
     });
 
+router.post("/supp", body("id_jalon"),  async(req,res) => {
+
+        const suppJalon=  await jalonRepository.suppJalon(req.body.id_jalon);
+
+        if(suppJalon === 1){
+            res.status(200).end();
+        }
+        else{
+            res.status(400).send("Problème lors de la suppression de projet");
+        }
+    });
 
 
 exports.initializeRoutesJalon = () => router;

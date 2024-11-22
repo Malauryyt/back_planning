@@ -2,6 +2,7 @@ const {sequelize} = require("../datamodel/db");
 const Jalon = require('../datamodel/jalon.model');
 const JalonRepository = require("../datamodel/jalon.model");
 const bcrypt = require("bcryptjs");
+const Projet = require("../datamodel/projet.model");
 
 
 exports.createJalon = async (libelle, date_liv_prev, date_commencement = "", id_user, id_projet, couleur) => {
@@ -135,7 +136,7 @@ exports.getJalonByProjet = async (id_projet) => {
 
         return jalons;
     } catch (error) {
-        console.error('Erreur lors de la récupération de jalons:', error);
+        console.error('Erreur lors de la récupération de jalons ( Getjalon by projet:', error);
         return 0;
     }
 };
@@ -184,18 +185,9 @@ exports.modifDateCom = async (id_jalon, date_com, charge) =>{
     }
 }
 
-exports.modifJalon = async (id_jalon, libelle, date_liv_prev, date_commencement = "", id_user, id_projet, couleur) => {
+exports.modifJalon = async (id_jalon, libelle, date_liv_prev, date_commencement, id_user, id_projet, etat, couleur) => {
 
     const tabJalon = await this.getJalonByProjet(id_projet);
-    var prece = 0;
-    var dateCommencement = "";
-    var dateLivPrece = "";
-    var idJalonAModif = 0;
-    var finLivJalonAModif = "";
-    var infoJalons = "";
-
-
-
 
     const index = tabJalon.findIndex(jalon => jalon.id_jalon === id_jalon);
     if(index === -1){
@@ -205,24 +197,36 @@ exports.modifJalon = async (id_jalon, libelle, date_liv_prev, date_commencement 
     // on récupère les anciennes valeurs
     var infoJalons = tabJalon[index] ;
     var infoJalonsAnte = tabJalon[index - 1 ] ;
-    var infoJalonsPrece = tabJalon[index + 1 ] ;
-
-    console.log("mon erng : ", infoJalonsPrece );
-
+    var infoJalonsSuiv = tabJalon[index + 1 ] ;
 
 
     // // modification de mon jalon
-    async function modifJalon(id_jalon, libelle, date_liv_prev, date_commencement, id_user, etat) {
+    async function modifJalon(id_jalon, libelle, date_liv_prev, date_commencement, id_user, etat, couleur) {
         try{
+            // calcule de la charge en jour
+            const start = new Date(date_commencement);
+            const end = new Date(date_liv_prev);
+            const diffTime = end - start;
+
+            // Convertir la différence en jours
+            const diffDays = diffTime / (1000 * 60 * 60 * 24);
+            const charge =  Math.round(diffDays) + 1;
+            console.log("calcule charge", Math.round(diffDays))
+            console.log(charge)
+            console.log(start)
+            console.log(end)
+
             const jalonModif = await sequelize.query(`UPDATE "jalon"
                                             SET libelle = :libelle,
                                                 date_liv_theorique= :date_liv_prev,
+                                                date_com_theorique = :date_commencement,
                                                 id_user = :id_user,
                                                 etat = :etat,
-                                                couleur = :couleur
+                                                couleur = :couleur,
+                                                charge = :charge
                                             
-                                            WHERE id_jalon = :id_jalon ;`, { replacements: {  libelle, date_liv_prev,
-                                                                                                     id_user, etat, couleur, id_jalon}})
+                                            WHERE id_jalon = :id_jalon ;`, { replacements: {  libelle, date_liv_prev,date_commencement,
+                                                                                                     id_user, etat, couleur, charge, id_jalon}})
                 .then(([results, metadata]) => {
                     console.log("Modification jalon effectuée.", results);
                 });
@@ -234,44 +238,37 @@ exports.modifJalon = async (id_jalon, libelle, date_liv_prev, date_commencement 
         }
     }
 
-    id_jalon, libelle, date_liv_prev, date_commencement = "", id_user, id_projet, couleur
-
-    if(infoJalonsAnte != undefined ){
-        dateCommencement = infoJalons.date_com_theorique;
-    }
-    else if ( infoJalonsPrece != undefined )
-    // modification  de mon nouveau jalon si les dates correspondent
-    if(new Date(infoJalonsAnte.date_liv_theorique).getTime() > new Date(infoJalons.date_liv_theorique).getTime() ||
-        new Date(infoJalonsPrece.date_liv_theorique).getTime() < new Date(infoJalons.date_liv_theorique).getTime()){
-
-        return 0;
-    }else {
-        if (date_commencement === "") {
-            date_commencement = infoJalons.date_com_theorique;
-        }
-    }
-
     //Date de commencement
-    if( dateCommencement == ""){
-        dateCommencement = infoJalonsAnte.date_liv_theorique;
+
+    if( date_commencement == ""){
+        date_commencement = infoJalons.date_com_theorique;
     }
     // Vérification de date
-    if(new Date(dateCommencement).getTime() >  new Date(date_liv_prev).getTime() ){
+    if(new Date(date_commencement).getTime() >  new Date(date_liv_prev).getTime() ){
+        console.log("La date de commencement est supérieur à la date de fin.")
         return 0;
     }
-    if(infoJalonsAnte != undefined && new Date(infoJalonsAnte.date_liv_theorique).getTime() > new Date(infoJalons.date_liv_theorique).getTime()  ){
+    if(infoJalonsAnte != undefined && new Date(infoJalonsAnte.date_liv_theorique).getTime() >= new Date(date_liv_prev).getTime()  ){
+        console.log("La date de fin théorique est inférieur ou égale  à celle du jalon antérieur")
         return 0;
     }
-    if(infoJalonsPrece != undefined && new Date(infoJalonsPrece.date_liv_theorique).getTime() < new Date(infoJalons.date_liv_theorique).getTime()  ){
+    if(infoJalonsSuiv != undefined && new Date(infoJalonsSuiv.date_liv_theorique).getTime() <= new Date(date_liv_prev).getTime()  ){
+        console.log("La date de fin théorique est inférieur ou égale à celle du jalon suivant")
         return 0;
     }
 
-    const modifJal = await modifJalon(libelle, date_liv_prev, dateCommencement, id_user, id_projet);
+    console.log("ma dateeee" , date_commencement)
+
+    const modifJal = await modifJalon(id_jalon , libelle, date_liv_prev, date_commencement, id_user,  etat, couleur);
 
 
 
-    // modification de la date de commencement d'un jalon
-    if( idJalonAModif != 0){
+    // modification de la date de commencement du jalon suivant
+
+    if( infoJalonsSuiv != undefined){
+
+        console.log( "Jalon a modifier", infoJalonsSuiv)
+
         //ReCalcule de la date de commencement ( on y ajoute un jour)
         const date = new Date(date_liv_prev);
         date.setDate(date.getDate() + 1);
@@ -281,19 +278,55 @@ exports.modifJalon = async (id_jalon, libelle, date_liv_prev, date_commencement 
 
         // Recalcule de la charge en jour
         const start = new Date(date_liv_prev);
-        const end = new Date(finLivJalonAModif);
+        const end = new Date(infoJalonsSuiv.date_liv_theorique);
         const diffTime = end - start;
 
         // Convertir la différence en jours
         const diffDays = diffTime / (1000 * 60 * 60 * 24);
         const charge =  Math.round(diffDays);
 
-        const modif =  await this.modifDateCom(idJalonAModif, date_liv_prev, charge  + 1)
+        const modif =  await this.modifDateCom(infoJalonsSuiv.id_jalon, date_liv_prev, charge  + 1)
         if(modif != 1){
             return 0;
         }
     }
 
     return 1;
+
+};
+
+exports.suppJalon = async (id_jalon, id_projet ) => {
+
+    const monJalon = await this.getJalonById(id_jalon);
+    const tabJalon = await this.getJalonByProjet(monJalon[0].id_projet);
+
+
+    const index = tabJalon.findIndex(jalon => jalon.id_jalon === id_jalon);
+    if(index === -1){
+        return 0;
+    }
+
+    if (index === 0 || index === (tabJalon.length - 1 ) ){
+        console.log("c'est un jalon en extrémité")
+
+        try {
+            const result = await Jalon.destroy({ where: { id_jalon: id_jalon } });
+            if (result === 0) {
+                console.log(`Aucun jalon trouvé avec l'ID ${id_jalon} pour suppression.`);
+                return 0;
+            }
+            console.log(`Jalon avec l'ID ${id_jalon} supprimé avec succès.`);
+            return 1;
+        } catch (error) {
+            console.error('Erreur lors de la suppression du jalon:', error);
+            return 0;
+        }
+
+
+    }
+    else{
+        console.log("Impossible de supprimer un jalon au mileu.")
+        return 0;
+    }
 
 };
