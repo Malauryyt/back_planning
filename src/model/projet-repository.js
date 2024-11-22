@@ -153,13 +153,10 @@ exports.getProjetsSuivit = async (id_user) => {
                 return results;
             });
 
-        if (projet.length === 0) {
-            console.log(`Aucun projet trouvé dont une tache trouvé a un id_user ${id_user}.`);
-        }
         return projet;
     } catch (error) {
         console.error('Erreur lors de la récupération des projets:', error);
-        return 0;
+        return 100;
     }
 };
 
