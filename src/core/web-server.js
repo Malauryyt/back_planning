@@ -10,6 +10,7 @@ const Jalon = require('../datamodel/jalon.model');
 const routesUser = require('../controller/user.route');
 const RoutesProjet = require('../controller/projet.route');
 const RoutesJalon = require('../controller/jalon.route');
+const RoutesTache = require('../controller/taches.route');
 
 
 class WebServer {
@@ -53,6 +54,7 @@ class WebServer {
         this.app.use('/user', routesUser.initializeRoutesUser());
         this.app.use('/projet', RoutesProjet.initializeRoutesProjet());
         this.app.use('/jalon', RoutesJalon.initializeRoutesJalon());
+        this.app.use('/tache', RoutesTache.initializeRoutesTache());
 
     }
 }
