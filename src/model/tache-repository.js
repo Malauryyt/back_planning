@@ -36,7 +36,7 @@ exports.getTacheByJalon = async (id_jalon) => {
         return taches;
     } catch (error) {
         console.error('Erreur lors de la récupération de tache:', error);
-        return 0;
+        return 500;
     }
 };
 

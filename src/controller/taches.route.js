@@ -4,15 +4,14 @@ const tacheRepository = require('../model/tache-repository');
 
 router.get("/getTacheByJalon/:id_jalon", async(req,res) =>{
 
-    const user =  await tacheRepository.getTacheByJalon(req.params.id_jalon) ;
+    const tache =  await tacheRepository.getTacheByJalon(req.params.id_jalon) ;
+    console.log("ma tache", tache)
+    if(tache !=500){
 
-    if(user != 0){
-
-        res.status(200).json({ user });
+        res.status(200).json( tache);
     }
     else{
-        res.status(400).send("Login ou mot de passe incorrect");
-        return false;
+        res.status(400).send("Erreur lors de la récupération de tache");
     }
 
 });
