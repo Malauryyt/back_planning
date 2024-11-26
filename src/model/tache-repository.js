@@ -102,3 +102,19 @@ exports.modifTache = async (id, libelle, description, operation,  dateDebutTheo,
         return 500; // Retourner 0 en cas d'erreur
     }
 };
+
+
+exports.deleteTache= async (id) => {
+    try {
+        const result = await Tache.destroy({ where: { id: id } });
+        if (result === 0) {
+            console.log(`Aucune tache trouvé avec l'ID ${id} pour suppression.`);
+            return 0;
+        }
+        console.log(`Tache avec l'ID ${id} supprimée avec succès.`);
+        return 1;
+    } catch (error) {
+        console.error('Erreur lors de la suppression de la tache:', error);
+        return 500;
+    }
+};

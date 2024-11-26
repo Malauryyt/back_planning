@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const tacheRepository = require('../model/tache-repository');
 const { body, validationResult } = require('express-validator');
+const jalonRepository = require("../model/jalon-repository");
 
 router.get("/getTacheByJalon/:id_jalon", async(req,res) =>{
 
@@ -51,6 +52,18 @@ router.post("/modif", body("id"), body("libelle"), body("description"), body("op
             res.status(400).send("Erreur lors de la modification de la tache");
         }
 
-    });
+});
+
+router.post("/supp", body("id"),  async(req,res) => {
+
+    const suppTache =  await tacheRepository.deleteTache(req.body.id);
+
+    if(suppTache === 1){
+        res.status(200).end();
+    }
+    else{
+        res.status(400).send("Problème lors de la suppression de projet");
+    }
+});
 
 exports.initializeRoutesTache = () => router;
