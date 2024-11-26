@@ -31,7 +31,19 @@ class WebServer {
         Tache.belongsTo(Jalon, {foreignKey: "id_jalon"});
         Tache.belongsTo(User, {foreignKey: "id_user"});
         Tache.belongsTo(Projet, {foreignKey: "id_projet"});
-        Tache.belongsTo(Tache, {foreignKey: "id"});
+
+        // Relation recursive
+        Tache.belongsTo(Tache, {
+            as: 'Parent',
+            foreignKey: 'id_tache',
+            onDelete: 'RESTRICT', // Empêche la suppression si des tâches enfants existent
+        });
+
+        Tache.hasMany(Tache, {
+            as: 'Children',
+            foreignKey: 'id_tache',
+            onDelete: 'RESTRICT',
+        });
 
 
         require('dotenv').config();

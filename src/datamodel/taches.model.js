@@ -9,7 +9,7 @@ const tacheModel = sequelize.define(
         description: { type: DataTypes.TEXT, allowNull: false },
         operation: { type: DataTypes.TEXT, allowNull: false },
         dateDebutTheorique: { type: DataTypes.DATEONLY, allowNull: false },
-        dateDemarrage: { type: DataTypes.DATEONLY, allowNull: false },
+        dateDemarrage: { type: DataTypes.DATEONLY, allowNull: true },
         charge : { type: DataTypes.INTEGER, allowNull: false },
         statut : { type: DataTypes.INTEGER, allowNull: false },
         id_user: { foreignKey:true, type: DataTypes.INTEGER, allowNull: false },

@@ -18,6 +18,21 @@ router.get("/getTacheByJalon/:id_jalon", async(req,res) =>{
 
 });
 
+
+router.get("/getTacheByProjet/:id_projet/:id_user", async(req,res) =>{
+
+    const tache =  await tacheRepository.getTacheByProjet(req.params.id_projet, req.params.id_user) ;
+    console.log("ma tache", tache)
+    if(tache !=500){
+
+        res.status(200).json( tache);
+    }
+    else{
+        res.status(400).send("Erreur lors de la récupération de tache");
+    }
+
+});
+
 router.post("/crea", body("libelle"), body("description"), body("operation"), body("dateDebutTheo"), body("dateDema"),
     body("charge"), body("statut"), body("id_user"),
     body("id_tache"), body("id_jalon"), body("id_projet"),  async(req,res) =>{
