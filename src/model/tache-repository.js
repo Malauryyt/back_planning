@@ -1,5 +1,6 @@
 const {sequelize} = require("../datamodel/db");
 const Tache = require('../datamodel/taches.model');
+const Projet = require("../datamodel/projet.model");
 
 exports.getTacheByJalon = async (id_jalon) => {
     try {
@@ -40,3 +41,29 @@ exports.getTacheByJalon = async (id_jalon) => {
     }
 };
 
+exports.createTache = async (libelle, description, operation,  dateDebutTheo, dateDema,
+                              charge, statut, id_user, id_tache, id_jalon, id_projet) => {
+
+    try {
+
+        const newProjet = await Tache.create({
+            libelle: libelle,
+            description: description,
+            operation: operation,
+            dateDebutTheorique: dateDebutTheo,
+            dateDemarrage: dateDema,
+            charge: charge,
+            statut: statut,
+            id_user: id_user,
+            id_tache: id_tache,
+            id_jalon: id_jalon,
+            id_projet: id_projet
+        });
+
+        console.log('Nouvelle tache créée:', newProjet);
+        return 1;
+    } catch (error) {
+        console.error('Erreur lors de la création de la tache:', error);
+        return 0;
+    }
+};
