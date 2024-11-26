@@ -24,15 +24,33 @@ router.post("/crea", body("libelle"), body("description"), body("operation"), bo
     const tache =  await tacheRepository.createTache(req.body.libelle,req.body.description,req.body.operation,req.body.dateDebutTheo,
                                                     req.body.dateDema,req.body.charge,req.body.statut,req.body.id_user,req.body.id_tache,
                                                     req.body.id_jalon,req.body.id_projet) ;
-    console.log("ma tache", tache)
     if(tache !=500){
 
         res.status(200).end();
     }
     else{
-        res.status(400).send("Erreur lors de la création de tache");
+        res.status(400).send("Erreur lors de la création de la tache");
     }
 
 });
+
+router.post("/modif", body("id"), body("libelle"), body("description"), body("operation"), body("dateDebutTheo"), body("dateDema"),
+    body("charge"), body("statut"), body("id_user"),
+    body("id_tache"), body("id_jalon"), body("id_projet"),  async(req,res) =>{
+
+
+        const tache =  await tacheRepository.modifTache(req.body.id, req.body.libelle,req.body.description,req.body.operation,req.body.dateDebutTheo,
+            req.body.dateDema,req.body.charge,req.body.statut,req.body.id_user,req.body.id_tache,
+            req.body.id_jalon,req.body.id_projet) ;
+        console.log("ma tache", tache)
+        if(tache !=500){
+
+            res.status(200).end();
+        }
+        else{
+            res.status(400).send("Erreur lors de la modification de la tache");
+        }
+
+    });
 
 exports.initializeRoutesTache = () => router;
