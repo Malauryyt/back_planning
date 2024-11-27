@@ -71,6 +71,22 @@ exports.modifProjet = async (id, libelle, trigramme, id_user, etat) => {
 exports.getProjetById = async (id) => {
     try {
         const projet = await Projet.findOne({ where: { id_projet: id } });
+
+        // const projet = await sequelize.query(
+        //     `SELECT id_projet, libelle,  projet.trigramme, projet.id_user, etat,
+        //                  "user".trigramme as trigrammeuser, "user".nom as nom
+        //          FROM projet, "user"
+        //         where projet.id_projet = :id
+        //         and "user".id_user = projet.id_user;`,
+        //     {
+        //         replacements: { id }
+        //     }
+        // )
+        //     .then(([results, metadata]) => {
+        //         console.log("Projet trouvé", results);
+        //         return results;
+        //     });
+
         if (!projet) {
             console.log(`Projet avec l'ID ${id} non trouvé.`);
             return null;
@@ -86,8 +102,9 @@ exports.getProjetById = async (id) => {
 exports.getProjetsByUserId = async (id_user) => {
     try {
         const projets = await sequelize.query(
-            `SELECT id_projet, libelle,  projet.trigramme, projet.id_user, etat, "user".id_user, "user".trigramme as trigrammeuser
-                 FROM projet, "user"
+            `SELECT id_projet, libelle,  projet.trigramme, projet.id_user, etat,
+                    "user".id_user, "user".trigramme as trigrammeuser, "user".nom 
+             FROM projet, "user"
                 where projet.id_user = :id_user
                 and "user".id_user = projet.id_user;`,
             {

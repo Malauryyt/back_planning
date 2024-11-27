@@ -27,7 +27,7 @@ router.get("/getJalons/:id_projet",  async(req,res) => {
 
         const getJalon=  await jalonRepository.getJalonByProjet(req.params.id_projet);
 
-        if(getJalon == 0){
+        if(getJalon == 500){
             res.status(400).send("Problème dans la récupération de jalon");
 
         }

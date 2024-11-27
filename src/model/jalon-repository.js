@@ -137,7 +137,7 @@ exports.getJalonByProjet = async (id_projet) => {
         return jalons;
     } catch (error) {
         console.error('Erreur lors de la récupération de jalons ( Getjalon by projet:', error);
-        return 0;
+        return 500;
     }
 };
 
